@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f6ff9731-039b-4c1a-aae4-4d70a4a71b72" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="13e6cd50-0c30-4a9d-a0c5-f62da534f93e" >
+		<email:smtps-connection host="smtp.gmail.com" user="shardulmulesoft@gmail.com" password="Welcome@12345" >
+			<tls:context >
+				<tls:trust-store insecure="true" />
+			</tls:context>
+		</email:smtps-connection>
+	</email:smtp-config>
+	<flow name="emailFlow" doc:id="3a834c30-0ad7-4e0e-9ded-2b678e0f22c6" >
+		<http:listener doc:name="Listener" doc:id="3f1a01ca-84dc-4ee3-b17b-b00fc3653926" config-ref="HTTP_Listener_config" path="/email"/>
+		<ee:transform doc:name="Transform Message" doc:id="67b93e7d-5c0b-47c9-bd3e-d6d7ca3a947b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Name": "Diksha",
+	"Age": "20",
+	"Subject": "Message from mule"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<email:send doc:name="Send" doc:id="b7b835f1-47f0-421d-8562-928b8b8da141" config-ref="Email_SMTP" fromAddress='#["shardulmulesoft@gmail.com"]' subject='#[payload.Subject]'>
+			<email:to-addresses >
+				<email:to-address value="dikshaduryodhan22@gmail.com" />
+			</email:to-addresses>
+			<email:body >
+				<email:content ><![CDATA[#[payload.Name ++ payload.Age]]]></email:content>
+			</email:body>
+		</email:send>
+		<logger level="INFO" doc:name="Logger" doc:id="fe8feb92-d04e-4c00-984e-fef0040e93f0" message='#["Mail sent successfully... "]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="2fa32f5c-ac9c-42c4-962e-32998b2be335" message='"Last Logger"'/>
+	</flow>
+</mule>
